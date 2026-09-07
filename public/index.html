@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Libra Security • Sales Executive Dashboard</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="brand-text">
+          <h1>LIBRA SECURITY</h1>
+          <span>Sales Reporting Dashboard</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button id="btnExportExcel" class="btn btn-secondary">
+          <i class="fa-solid fa-file-excel"></i> <span class="hide-mobile">Export</span>
+        </button>
+        <button id="btnNewEntry" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> <span class="hide-mobile">New Sale</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-body">
+      <!-- Filter Bar -->
+      <section class="filter-section card">
+        <div class="preset-buttons">
+          <button class="preset-btn active" data-range="thisWeek">This Week (Mon-Fri)</button>
+          <button class="preset-btn" data-range="lastWeek">Last Week</button>
+          <button class="preset-btn" data-range="thisMonth">This Month</button>
+        </div>
+        <div class="date-picker-group">
+          <div class="input-wrap">
+            <label><i class="fa-regular fa-calendar"></i> From</label>
+            <input type="date" id="startDate">
+          </div>
+          <div class="input-wrap">
+            <label><i class="fa-regular fa-calendar"></i> To</label>
+            <input type="date" id="endDate">
+          </div>
+          <button id="btnApplyDate" class="btn btn-icon" title="Apply Date Range">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- KPI Summary Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card net-revenue">
+          <div class="kpi-header">
+            <span class="kpi-title">NET SALES REVENUE</span>
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-chart-line"></i></div>
+          </div>
+          <div class="kpi-value" id="kpiNetRevenue">$0.00</div>
+          <div class="kpi-footer">
+            <span class="badge badge-success" id="kpiNetBadge">Active Week</span>
+            <span class="kpi-subtext" id="kpiPeriodText">Mon – Fri</span>
+          </div>
+        </div>
+
+        <div class="kpi-card gross-added">
+          <div class="kpi-header">
+            <span class="kpi-title">GROSS ADDED</span>
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-arrow-trend-up"></i></div>
+          </div>
+          <div class="kpi-value" id="kpiGrossAdded">$0.00</div>
+          <div class="kpi-footer">
+            <span class="sub-item" id="kpiNewStart">🟢 New: $0.00</span>
+            <span class="sub-item" id="kpiExtra">✨ Extra: $0.00</span>
+          </div>
+        </div>
+
+        <div class="kpi-card gross-lost">
+          <div class="kpi-header">
+            <span class="kpi-title">GROSS LOST / CHURN</span>
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-arrow-trend-down"></i></div>
+          </div>
+          <div class="kpi-value" id="kpiGrossLost">-$0.00</div>
+          <div class="kpi-footer">
+            <span class="sub-item" id="kpiReduction">🔻 Reduct: -$0.00</span>
+            <span class="sub-item" id="kpiTerminate">❌ Term: -$0.00</span>
+          </div>
+        </div>
+
+        <div class="kpi-card total-deals">
+          <div class="kpi-header">
+            <span class="kpi-title">TOTAL TRANSACTIONS</span>
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-receipt"></i></div>
+          </div>
+          <div class="kpi-value" id="kpiDealsCount">0</div>
+          <div class="kpi-footer">
+            <span class="kpi-subtext" id="kpiAvgDeal">Avg Deal: $0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Row -->
+      <section class="charts-grid">
+        <div class="chart-card card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-chart-column"></i> Daily Sales Performance</h3>
+            <span class="card-tag">Gross vs Lost</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="dailyBarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-pie-chart"></i> Service Distribution</h3>
+            <span class="card-tag">Manned vs CMS</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="servicePieChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sales Rep Leaderboard -->
+      <section class="leaderboard-section card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-trophy"></i> Sales Rep Performance Leaderboard</h3>
+          <span class="card-tag" id="repsCountTag">4 Active Salers</span>
+        </div>
+        <div class="rep-cards-grid" id="repsContainer">
+          <!-- Dynamically filled by app.js -->
+        </div>
+      </section>
+
+      <!-- Data Table Section -->
+      <section class="table-section card">
+        <div class="table-toolbar">
+          <div class="toolbar-title">
+            <h3><i class="fa-solid fa-list-check"></i> Itemized Sales Records</h3>
+            <span class="records-count" id="tableCountBadge">0 Records</span>
+          </div>
+          <div class="toolbar-filters">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="tableSearch" placeholder="Search client, notes...">
+            </div>
+            <select id="filterRep" class="select-dropdown">
+              <option value="ALL">All Salers</option>
+            </select>
+            <select id="filterCategory" class="select-dropdown">
+              <option value="ALL">All Services</option>
+              <option value="Manned Security">Manned Security</option>
+              <option value="CMS">CMS Alarm</option>
+              <option value="Other">Other</option>
+            </select>
+            <select id="filterStatus" class="select-dropdown">
+              <option value="ALL">All Statuses</option>
+              <option value="New Start">New Start</option>
+              <option value="Extra">Extra</option>
+              <option value="Reduction">Reduction</option>
+              <option value="Terminate">Terminate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Sales Rep</th>
+                <th>Service Category</th>
+                <th>Status</th>
+                <th>Amount ($)</th>
+                <th>Client / Project</th>
+                <th>Notes</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td colspan="9" class="text-center">Loading sales records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: New Sale Entry Form -->
+    <div id="entryModal" class="modal-overlay">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-plus-circle"></i> Add Sales Transaction</h3>
+          <button class="btn-close" id="btnCloseModal">&times;</button>
+        </div>
+        <form id="newEntryForm" class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formDate">Report Date *</label>
+              <input type="date" id="formDate" required>
+            </div>
+            <div class="form-group">
+              <label for="formRep">Sale Rep *</label>
+              <select id="formRep" required>
+                <option value="Mr. Chun Sros">Mr. Chun Sros</option>
+                <option value="Mr. Heng Chin">Mr. Heng Chin</option>
+                <option value="Mr. Heng Long">Mr. Heng Long</option>
+                <option value="Mr. Bou Dalin">Mr. Bou Dalin</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formCategory">Service Category *</label>
+              <select id="formCategory" required>
+                <option value="Manned Security">Manned Security</option>
+                <option value="CMS">CMS (911 Alarm)</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="formStatus">Status *</label>
+              <select id="formStatus" required>
+                <option value="New Start">🟢 New Start</option>
+                <option value="Extra">✨ Extra Service</option>
+                <option value="Reduction">🔻 Reduction</option>
+                <option value="Terminate">❌ Terminate</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formAmount">Amount ($ USD) *</label>
+              <input type="number" id="formAmount" step="0.01" min="0" placeholder="1200.00" required>
+            </div>
+            <div class="form-group">
+              <label for="formClient">Client / Project Name</label>
+              <input type="text" id="formClient" placeholder="e.g. Chip Mong Tower">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="formNotes">Notes / Remarks</label>
+            <input type="text" id="formNotes" placeholder="e.g. Added 2 night guards">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelModal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveEntry">Save Transaction</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

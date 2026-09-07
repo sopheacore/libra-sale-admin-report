@@ -1,0 +1,31 @@
+{
+  "name": "libra-sale-admin-report-bot",
+  "version": "1.0.0",
+  "description": "Telegram Reporting Bot for Libra Security Sales Team to collect daily sales reports and automate weekly Friday summaries",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test:sim": "node src/test_simulator.js"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "sales-reporting",
+    "weekly-report",
+    "libra-security"
+  ],
+  "author": "Libra Security",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "grammy": "^1.35.0",
+    "node-cron": "^3.0.3"
+  }
+}
